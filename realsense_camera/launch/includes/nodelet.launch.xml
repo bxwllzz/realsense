@@ -29,6 +29,8 @@
     <param name="ir2_optical_frame_id"     type="str"  value="$(arg camera)_ir2_optical_frame" />
     <param name="fisheye_optical_frame_id" type="str"  value="$(arg camera)_fisheye_optical_frame" />
     <param name="imu_optical_frame_id"     type="str"  value="$(arg camera)_imu_optical_frame" />
+    <param name="enable_ir"                type="bool" value="true" />
+    <param name="enable_ir2"               type="bool" value="true" />
 
     <remap from="depth"    to="$(arg depth)" />
     <remap from="color"    to="$(arg rgb)" />

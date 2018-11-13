@@ -45,14 +45,14 @@
 
     <!-- Processing Modules -->
     <arg name="rgb_processing" default="true"/>
-    <arg name="ir_processing" default="true"/>
+    <arg name="ir_processing" default="false"/>
     <arg name="debayer_processing" default="true"/>
-    <arg name="depth_processing" default="true"/>
-    <arg name="depth_registered_processing" default="true"/>
+    <arg name="depth_processing" default="false"/>
+    <arg name="depth_registered_processing" default="false"/>
     <arg name="disparity_processing" default="false"/>
     <arg name="disparity_registered_processing" default="false"/>
     <arg name="hw_registered_processing" default="false"/>
-    <arg name="sw_registered_processing" default="true"/>
+    <arg name="sw_registered_processing" default="false"/>
 
     <!-- Disable respawn topics by default -->
     <arg name="respawn" default="false"/>
@@ -105,37 +105,6 @@
             <arg name="projector" value="$(arg projector)"/>
             <arg name="respawn" value="$(arg respawn)"/>
             <arg name="rgb_processing" value="$(arg rgb_processing)"/>
-            <arg name="ir_processing" value="$(arg ir_processing)"/>
-            <arg name="debayer_processing" value="$(arg debayer_processing)"/>
-            <arg name="depth_processing" value="$(arg depth_processing)"/>
-            <arg name="depth_registered_processing" value="$(arg depth_registered_processing)"/>
-            <arg name="disparity_processing" value="$(arg disparity_processing)"/>
-            <arg name="disparity_registered_processing" value="$(arg disparity_registered_processing)"/>
-            <arg name="hw_registered_processing" value="$(arg hw_registered_processing)"/>
-            <arg name="sw_registered_processing" value="$(arg sw_registered_processing)"/>
-        </include>
-
-        <node pkg="nodelet" type="nodelet" name="rgb_crop" args="load image_proc/crop_decimate $(arg manager)">
-            <param name="x_offset" type="int" value="3"/>
-            <param name="y_offset" type="int" value="3"/>
-            <param name="width" type="int" value="633"/>
-            <param name="height" type="int" value="474"/>
-            <remap from="camera/image_raw" to="$(arg rgb)/image_rect_color"/>
-            <remap from="camera/camera_info" to="$(arg rgb)/camera_info"/>
-            <remap from="camera_out/image_raw" to="rgb_crop/image_rect_color"/>
-            <remap from="camera_out/camera_info" to="rgb_crop/camera_info"/>
-        </node>
-
-        <!-- Load standard constellation of processing nodelets -->
-        <include file="$(find rgbd_launch)/launch/includes/processing.launch.xml">
-            <arg name="manager" value="$(arg manager)"/>
-            <arg name="rgb" value="rgb_crop"/>
-            <arg name="ir" value="$(arg ir)"/>
-            <arg name="depth" value="$(arg depth)"/>
-            <arg name="depth_registered" value="$(arg depth_registered)"/>
-            <arg name="projector" value="$(arg projector)"/>
-            <arg name="respawn" value="$(arg respawn)"/>
-            <arg name="rgb_processing" value="false"/>
             <arg name="ir_processing" value="$(arg ir_processing)"/>
             <arg name="debayer_processing" value="$(arg debayer_processing)"/>
             <arg name="depth_processing" value="$(arg depth_processing)"/>

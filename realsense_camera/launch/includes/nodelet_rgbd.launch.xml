@@ -28,8 +28,8 @@
     <arg name="enable_color"        default="true" />
     <arg name="enable_ir"           default="true" />
     <arg name="enable_ir2"          default="true" />
-    <arg name="enable_fisheye"      default="false" />
-    <arg name="enable_imu"          default="false" />
+    <arg name="enable_fisheye"      default="true" />
+    <arg name="enable_imu"          default="true" />
 
      <!-- "enable_pointcloud" is set to false by default because rgbd_launch uses standard ROS packages
           to generate point clouds. -->
