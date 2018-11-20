@@ -81,6 +81,7 @@ namespace realsense_camera {
 
         BaseNodelet::onInit();
 
+        handle_start_stop_srv_thread_ = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&ZR300Nodelet::handleStartStopSrv, this)));
         if (enable_imu_ == true) {
             imu_thread_ =
                     boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&ZR300Nodelet::publishIMU, this)));
@@ -494,11 +495,7 @@ namespace realsense_camera {
         rs_set_device_option(rs_device_, RS_OPTION_HARDWARE_LOGGER_ENABLED, config.hardware_logger_enabled, 0);
     }
 
-    /*
-     * Publish IMU.
-     */
-    void ZR300Nodelet::publishIMU() {
-        prev_imu_ts_ = -1;
+    void ZR300Nodelet::handleStartStopSrv() {
         while (ros::ok()) {
             if (start_stop_srv_called_ == true) {
                 if (start_camera_ == true) {
@@ -515,9 +512,18 @@ namespace realsense_camera {
                 startCamera();
             }
 
-            if (imu_publisher_.getNumSubscribers() > 0) {
-                std::unique_lock<std::mutex> lock(imu_mutex_);
+            std::unique_lock<std::mutex> lk(start_stop_srv_called_mutex_);
+            start_stop_srv_called_cv_.wait_for(lk, std::chrono::milliseconds(200));
+        }
+    }
 
+    /*
+     * Publish IMU.
+     */
+    void ZR300Nodelet::publishIMU() {
+        prev_imu_ts_ = -1;
+        while (ros::ok()) {
+            if (imu_publisher_.getNumSubscribers() > 0) {
                 if (prev_imu_ts_ != imu_ts_) {
                     sensor_msgs::Imu imu_msg = sensor_msgs::Imu();
                     imu_msg.header.stamp = ros::Time(camera_start_ts_) + ros::Duration(imu_ts_ * 0.001);
@@ -533,6 +539,9 @@ namespace realsense_camera {
                     prev_imu_ts_ = imu_ts_;
                 }
             }
+
+            std::unique_lock<std::mutex> lock(imu_mutex_);
+            imu_cv_.wait_for(lock, std::chrono::milliseconds(200));
         }
         stopIMU();
     }
@@ -570,6 +579,7 @@ namespace realsense_camera {
                 imu_angular_vel_.z = entry.axes[2];
 
                 imu_ts_ = static_cast<double>(entry.timestamp_data.timestamp);
+                imu_cv_.notify_one();
             } else if (entry.timestamp_data.source_id == RS_EVENT_IMU_ACCEL) {
                 // 250 Hz
                 imu_linear_accel_.x = entry.axes[0];

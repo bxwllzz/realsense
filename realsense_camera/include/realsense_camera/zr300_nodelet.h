@@ -34,6 +34,7 @@
 
 #include <string>
 #include <vector>
+#include <condition_variable>
 
 #include <dynamic_reconfigure/server.h>
 #include <sensor_msgs/Imu.h>
@@ -63,10 +64,12 @@ protected:
   double imu_ts_;
   double prev_imu_ts_;
   ros::Publisher imu_publisher_;
+  boost::shared_ptr<boost::thread> handle_start_stop_srv_thread_;
   boost::shared_ptr<boost::thread> imu_thread_;
   std::function<void(rs::motion_data)> motion_handler_;
   std::function<void(rs::timestamp_data)> timestamp_handler_;
   std::mutex imu_mutex_;
+  std::condition_variable imu_cv_;
 
   rs_extrinsics color2ir2_extrinsic_;      // color frame is base frame
   rs_extrinsics color2fisheye_extrinsic_;  // color frame is base frame
@@ -85,6 +88,7 @@ protected:
   void getCameraExtrinsics();
   void publishStaticTransforms();
   void publishDynamicTransforms();
+  void handleStartStopSrv();
   void publishIMU();
   void setStreams();
   void setIMUCallbacks();

@@ -47,6 +47,7 @@
 #include <signal.h>
 #include <string>
 #include <vector>
+#include <condition_variable>
 
 #include <opencv2/core/core.hpp>
 #include <cv_bridge/cv_bridge.h>
@@ -142,6 +143,8 @@ protected:
   rs_source rs_source_ = RS_SOURCE_VIDEO;
   bool start_camera_ = true;
   bool start_stop_srv_called_ = false;
+  std::condition_variable start_stop_srv_called_cv_;
+  std::mutex start_stop_srv_called_mutex_;
 
   struct CameraOptions
   {

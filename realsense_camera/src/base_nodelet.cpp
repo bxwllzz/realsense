@@ -425,6 +425,7 @@ bool BaseNodelet::setPowerCameraService(realsense_camera::SetPower::Request &req
     if (req.power_on == true) {
         start_camera_ = true;
         start_stop_srv_called_ = true;
+        start_stop_srv_called_cv_.notify_all();
     } else {
         if (rs_is_device_streaming(rs_device_, 0) == 0) {
             ROS_INFO_STREAM(nodelet_name_ << " - Camera is already Stopped");
@@ -432,6 +433,7 @@ bool BaseNodelet::setPowerCameraService(realsense_camera::SetPower::Request &req
             if (checkForSubscriber() == false) {
                 start_camera_ = false;
                 start_stop_srv_called_ = true;
+                start_stop_srv_called_cv_.notify_all();
             } else {
                 ROS_INFO_STREAM(nodelet_name_ << " - Cannot stop the camera. Nodelet has subscriber.");
                 res.success = false;
@@ -448,6 +450,7 @@ bool BaseNodelet::forcePowerCameraService(realsense_camera::ForcePower::Request 
                                           realsense_camera::ForcePower::Response &res) {
     start_camera_ = req.power_on;
     start_stop_srv_called_ = true;
+    start_stop_srv_called_cv_.notify_all();
     return true;
 }
 
