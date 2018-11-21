@@ -62,6 +62,7 @@ protected:
   geometry_msgs::Vector3 imu_angular_vel_;
   geometry_msgs::Vector3 imu_linear_accel_;
   double imu_ts_;
+  bool camera_ts_faster_ = true;
   double prev_imu_ts_;
   ros::Publisher imu_publisher_;
   boost::shared_ptr<boost::thread> handle_start_stop_srv_thread_;

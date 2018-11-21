@@ -570,6 +570,27 @@ namespace realsense_camera {
     void ZR300Nodelet::setIMUCallbacks() {
         motion_handler_ = [&](rs::motion_data entry)  // NOLINT(build/c++11)
         {
+            // sync device time with ros::Time
+            auto dt = camera_start_ts_ + ros::Duration(entry.timestamp_data.timestamp * 0.001) - ros::Time::now();
+            if (!camera_ts_faster_ && dt > ros::Duration(0.01)) {
+                camera_ts_faster_ = true;
+                ROS_WARN_STREAM("Realsense timestamp is faster than ros::Time(). Syncing...");
+            }
+            if (camera_ts_faster_ && dt > ros::Duration()) {
+                // sync time
+                camera_start_ts_ -= dt;
+                ROS_DEBUG("Realsense timestamp is ahead of ros::Time::now() %.6f sec. Synced!", dt.toSec());
+            }
+            if (camera_ts_faster_ && dt < ros::Duration(-0.01)) {
+                camera_ts_faster_ = false;
+                ROS_WARN_STREAM("Realsense timestamp is slower than ros::Time(). Syncing...");
+            }
+            if (!camera_ts_faster_ && dt < ros::Duration()) {
+                // sync time
+                camera_start_ts_ -= dt;
+                ROS_DEBUG("Realsense timestamp is behind of ros::Time::now() %.6f sec. Synced!", dt.toSec());
+            }
+
             std::unique_lock<std::mutex> lock(imu_mutex_);
 
             if (entry.timestamp_data.source_id == RS_EVENT_IMU_GYRO) {
@@ -590,7 +611,7 @@ namespace realsense_camera {
 
             ROS_DEBUG_STREAM(" - Motion,\t host time " << imu_ts_
                                                        << "\ttimestamp: " << std::setprecision(8)
-                                                       << (double) entry.timestamp_data.timestamp * IMU_UNITS_TO_MSEC
+                                                       << (double) entry.timestamp_data.timestamp * 0.001
                                                        << "\tsource: " << (rs::event) entry.timestamp_data.source_id
                                                        << "\tframe_num: " << entry.timestamp_data.frame_number
                                                        << "\tx: " << std::setprecision(5) << entry.axes[0]
@@ -607,7 +628,7 @@ namespace realsense_camera {
 
             ROS_DEBUG_STREAM(" - TimeEvent, host time " << sys_time
                                                         << "\ttimestamp: " << std::setprecision(8)
-                                                        << (double) entry.timestamp * IMU_UNITS_TO_MSEC
+                                                        << (double) entry.timestamp * 0.001
                                                         << "\tsource: " << (rs::event) entry.source_id
                                                         << "\tframe_num: " << entry.frame_number);
         };
